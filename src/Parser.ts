@@ -10,7 +10,7 @@ import UnarOperationNode from "./AST/UnarOperatorNode";
 export default class Parser {
     tokens: Token[]; //список токенов
     pos: number = 0; //позиция
-    scope: any = {}; //объект в котором ключ- название,значение- то чему равна переменная
+
 
 
     constructor(tokens: Token[]) {
@@ -54,7 +54,7 @@ export default class Parser {
             this.require(tokenTypesList.RPAR);//ожидаем правую скобку
             return node;
         } else {
-            return this.parseVariableOrNumber();
+            return this.parseVariableOrNumber();//если не скобки то просто парсим число или переменную
         }
     }
 
@@ -63,7 +63,7 @@ export default class Parser {
         let operator = this.match(tokenTypesList.MINUS, tokenTypesList.PLUS); //оператор
         while (operator != null) {
             const rightNode = this.parseParentheses();//создаем узел правого операнда
-            leftNode = new BinOperationNode(operator, leftNode, rightNode);// перезаписываем узел левого оператора и строится дерево узлов 
+            leftNode = new BinOperationNode(operator, leftNode, rightNode);// перезаписываем узел левого оператора и строится дерево узлов
             operator = this.match(tokenTypesList.MINUS, tokenTypesList.PLUS);
         }
         return leftNode;// вернет узел
@@ -107,43 +107,5 @@ export default class Parser {
         }
         return root; //возвращает узел строки
     }
-    run(node: ExpressionNode): any { //
-        if (node instanceof NumberNode) {//ожидает узел числа
-            return parseInt(node.number.text);
-        }
-        if (node instanceof UnarOperationNode) { //если оператор вывода в консоль
-            switch (node.operator.type.name) {
-                case tokenTypesList.LOG.name:
-                    console.log(this.run(node.operand)) //выводим операнд ноды
-                    return;
-            }
-        }
-        if (node instanceof BinOperationNode) {// если бинарный операор
-            switch (node.operator.type.name) {
-                case tokenTypesList.PLUS.name: //если +
-                    return this.run(node.leftNode) + this.run(node.rightNode)
-                case tokenTypesList.MINUS.name: //если минус
-                    return this.run(node.leftNode) - this.run(node.rightNode)
-                case tokenTypesList.ASSIGN.name://если присваивание
-                    const result = this.run(node.rightNode)
-                    const variableNode = <VariableNode>node.leftNode;
-                    this.scope[variableNode.variable.text] = result; //записываем для хранения значения переменной
-                    return result;
-            }
-        }
-        if (node instanceof VariableNode) { //если переменная
-            if (this.scope[node.variable.text]) {
-                return this.scope[node.variable.text]
-            } else { //если нет в хранилище
-                throw new Error(`Переменная с названием ${node.variable.text} не обнаружена`)
-            }
-        }
-        if (node instanceof StatemenNode) { //строка кода будет раскрываться
-            node.codeStrings.forEach(codeString => {
-                this.run(codeString);
-            })
-            return;
-        }
-        throw new Error('Ошибка!')
-    }
+
 }
