@@ -5,6 +5,8 @@ import {tokenTypesList} from "./TokenType";
 import BinOperationNode from "./AST/BinOperationNode";
 import VariableNode from "./AST/VariableNode";
 import StatemenNode from "./AST/StatemenNode";
+import HyphotenuseNode from "./AST/HyphotenuseNode";
+import TextNode from "./AST/TextNode";
 
 
 export default class Interpreter{
@@ -14,6 +16,9 @@ export default class Interpreter{
     run(node: ExpressionNode): any { //часть интерпритатора
         if (node instanceof NumberNode) {//ожидает узел числа
             return parseInt(node.number.text);//возвращает само число
+        }
+        if (node instanceof TextNode) {//ожидает узел текста
+            return node.text.text;//возвращает сам текст
         }
         if (node instanceof UnarOperationNode) { //если оператор вывода в консоль
             switch (node.operator.type.name) {
@@ -41,6 +46,14 @@ export default class Interpreter{
                 return this.scope[node.variable.text]
             } else { //если нет в хранилище
                 throw new Error(`Переменная с названием ${node.variable.text} не обнаружена`)
+            }
+        }
+        if (node instanceof HyphotenuseNode) { //если оператор вывода в консоль
+            switch (node.operator.type.name) {
+                case tokenTypesList.HYPOTENUSE.name:
+                    //console.log(this.run(node.operand)) //выводим операнд узла //для вып самих операций
+                    //console.log(node.operand) // для вывода дерева
+                    return console.log(((this.run(node.leftNode) ** 2 + this.run(node.rightNode) ** 2)**(1/2)).toFixed(5))
             }
         }
         if (node instanceof StatemenNode) { //строка кода будет раскрываться

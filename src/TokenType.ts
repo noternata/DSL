@@ -21,4 +21,7 @@ export const tokenTypesList = { //объект в котором описаны 
     'RPAR': new TokenType('RPAR', '\\)'),
     'HYPOTENUSE': new TokenType('HYPOTENUSE', 'ГИПОТЕНУЗА'),
     'COMMA': new TokenType('COMMA', '\\,'),
+    'QUOTE': new TokenType('QUOTE', '\\"'),
+    'TEXT': new TokenType('TEXT', '[а-я[0-9]*][а-я]*'),
+    'CENUM': new TokenType('CENUM', '\\+'),
 }

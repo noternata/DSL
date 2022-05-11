@@ -7,6 +7,7 @@ import NumberNode from "./AST/NumberNode";
 import VariableNode from "./AST/VariableNode";
 import UnarOperationNode from "./AST/UnarOperatorNode";
 import HyphotenuseNode from "./AST/HyphotenuseNode";
+import TextNode from "./AST/TextNode";
 
 export default class Parser {
     tokens: Token[]; //список токенов
@@ -42,10 +43,17 @@ export default class Parser {
     }
 
     parsePrint(): ExpressionNode { //парсит оператор вывода в консоль
-        const operatorLog = this.match(tokenTypesList.LOG);//ожидаем токен
-        if (operatorLog != null) {
-            return new UnarOperationNode(operatorLog, this.parseFormula())//опперанд мб любым
+        const operatorLog = this.tokens[this.pos];//ожидаем токен
+        this.pos += 1;
+        if (this.match(tokenTypesList.QUOTE) != null) {
+            if (this.match(tokenTypesList.VARIABLE) != null) {
+                this.pos -= 1;
+                const textNode = this.parseText();
+                this.require(tokenTypesList.QUOTE);
+                return new UnarOperationNode(operatorLog, textNode)
+            }
         }
+        return new UnarOperationNode(operatorLog, this.parseFormula())//опперанд мб любым
         throw new Error(`Ожидается унарный оператор КОНСОЛЬ на ${this.pos} позиции`)
     }
 
@@ -82,81 +90,49 @@ export default class Parser {
         }
         throw new Error(`Ожидается переменная или число на ${this.pos} позиции`)
     }
+    parseText(): ExpressionNode {
+        const text = this.match(tokenTypesList.VARIABLE);//ожидаем переменную
+        if (text != null) {
+            return new TextNode(text);// вернем узел переменной создавая дерево
+        }
+        throw new Error(`Ожидается текст на ${this.pos} позиции`)
+    }
 
-    //parseHypo(): ExpressionNode {
-        //this.pos -= 1;
-        //const hypoOperator = this.match(tokenTypesList.HYPOTENUSE);
-        //if (hypoOperator != null) {
-            /*this.require(tokenTypesList.LPAR);
-            //this.pos += 1;
-            if (this.match(tokenTypesList.VARIABLE) != null) {
+    parseHypo(): ExpressionNode {
+        this.pos -= 1;
+        const hypoOperator = this.require(tokenTypesList.HYPOTENUSE);
+        this.require(tokenTypesList.LPAR);
+        if ((this.match(tokenTypesList.NUMBER) || this.match(tokenTypesList.VARIABLE) )!= null) {
+            this.pos -= 1;
+            let firstNode = this.parseVariableOrNumber();
+            this.require(tokenTypesList.COMMA);
+            if ((this.match(tokenTypesList.NUMBER) || this.match(tokenTypesList.VARIABLE) )!= null) {
                 this.pos -= 1;
-                let firstNode = this.parseVariableOrNumber();
-                this.require(tokenTypesList.COMMA);
-                this.pos += 1;
-                if (this.match(tokenTypesList.VARIABLE) != null) {
-                    this.pos -= 1;
-                    const secondNode = this.parseVariableOrNumber();
-                    this.require(tokenTypesList.RPAR);
-                    const hypoNode = new HyphotenuseNode(hypoOperator, firstNode, secondNode);
-                    return hypoNode;
-                }
-            }*/
-                //if (this.match(tokenTypesList.LPAR) != null) {
-                    //if (this.match(tokenTypesList.VARIABLE) != null) {
-                        //this.pos -= 1;
-                        //let firstNode = this.parseVariableOrNumber();
-                        //if (this.match(tokenTypesList.COMMA) != null) {
-                            //this.pos -= 1;  && this.match(tokenTypesList.VARIABLE) != null
-                            //let secondNode = this.parseVariableOrNumber();
-                            //this.require(tokenTypesList.RPAR);
-                            //const hypoNode = new HyphotenuseNode(hypoOperator, firstNode, secondNode);
-                            //return hypoNode;
-                        //}
-                        //throw new Error(`Ожидается запятая и переменная или число на ${this.pos} позиции`)
-                    //}
-                    //throw new Error(`Ожидается переменная или число на ${this.pos} позиции`)
-                //}
-                //throw new Error(`Ожидается \\( на ${this.pos} позиции`)
-
-            //throw new Error(`Ожидается оператор ГИПОТЕНУЗА на ${this.pos} позиции`)
-        //}
-        //throw new Error(`Ожидается оператор ГИПОТЕНУЗА на ${this.pos} позиции`)
-    //}
+                const secondNode = this.parseVariableOrNumber();
+                this.require(tokenTypesList.RPAR);
+                const hypoNode = new HyphotenuseNode(hypoOperator, firstNode, secondNode);
+                return hypoNode;
+            }//throw new Error(`Неворно указан второй катет гипотенузы на ${this.pos} позиции`)
+        }
+        throw new Error(`Ожидается оператор ГИПОТЕНУЗА на ${this.pos} позиции`)
+    }
     parseExpression(): ExpressionNode { //парсит строки
         if (this.match(tokenTypesList.HYPOTENUSE) != null) {
-            this.pos -= 1;
-            const hypoOperator = this.require(tokenTypesList.HYPOTENUSE);
-            if (this.match(tokenTypesList.LPAR) != null){
-                if (this.match(tokenTypesList.VARIABLE) != null) {
-                    this.pos -= 1;
-                    let firstNode = this.parseVariableOrNumber();
-                    this.require(tokenTypesList.COMMA);
-                    //this.pos += 1;
-                    if (this.match(tokenTypesList.VARIABLE) != null) {
-                        this.pos -= 1;
-                        const secondNode = this.parseVariableOrNumber();
-                        this.require(tokenTypesList.RPAR);
-                        //this.pos += 1;
-                        //return firstNode;
-                        //return secondNode;
-                        const hypoNode = new HyphotenuseNode(hypoOperator, firstNode, secondNode);
-                        return hypoNode;
-                    }
-                }
-            }
-            //const hypoNode = this.parseHypo()
-            //const hypoNode = new HyphotenuseNode(hypoOperator, firstNode, secondNode);
-            //return hypoNode;
+            const hypoNode = this.parseHypo()
+            return hypoNode;
         }
         else if (this.match(tokenTypesList.LOG) != null) {
             this.pos -= 1;
+            //const operatorLog = this.require(tokenTypesList.LOG);//ожидаем токен
             const printNode = this.parsePrint() //тогда ожидаем оператор консоль
+            //if (this.match(tokenTypesList.CENUM) != null) {
+                //const printNode2 = this.parsePrint()
+            //}
             return printNode; //вернет узел
         }
         else if (this.match(tokenTypesList.VARIABLE) != null) {// ожидаем токен переменную или
             this.pos -= 1;// если была переменная вернемся обратно
-            let variableNode = this.parseVariableOrNumber(); //парсим переменную #или числа
+            let variableNode = this.parseVariableOrNumber(); //парсим переменую #или числна
             const assignOperator = this.match(tokenTypesList.ASSIGN); //ожидаем оператор присвоения
             if (assignOperator != null) { //проверка, что вернулся токен а не ноль
                 const rightFormulaNode = this.parseFormula(); // распарсиваем формулу
