@@ -19,4 +19,6 @@ export const tokenTypesList = { //объект в котором описаны 
     'MINUS': new TokenType('MINUS', 'МИНУС'),
     'LPAR': new TokenType('LPAR', '\\('),
     'RPAR': new TokenType('RPAR', '\\)'),
+    'HYPOTENUSE': new TokenType('HYPOTENUSE', 'ГИПОТЕНУЗА'),
+    'COMMA': new TokenType('COMMA', '\\,'),
 }

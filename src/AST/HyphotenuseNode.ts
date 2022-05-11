@@ -1,8 +1,9 @@
 import ExpressionNode from "./ExpressionNode";
 import Token from "../Token";
 
-//для бинарных операторов(2операнда) + - =
-export default class BinOperationNode extends ExpressionNode {
+//для встроенной функции расчета гипотенузы
+//далее можно будет так же использовать для других встроенных функций
+export default class HyphotenuseNode extends ExpressionNode {
     operator: Token; //сам токен оператора
     leftNode: ExpressionNode; //левый операнд мб перем или число
     rightNode: ExpressionNode; //правый операнд
@@ -15,4 +16,3 @@ export default class BinOperationNode extends ExpressionNode {
         this.rightNode = rightNode;
     }
 }
-

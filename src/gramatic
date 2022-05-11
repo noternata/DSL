@@ -1,0 +1,3 @@
+lang -> expr+
+expr -> while | do | for
+expr_val -> value ((PLUS | MINUS) value)* SEMICOLON
