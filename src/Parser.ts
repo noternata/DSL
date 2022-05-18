@@ -8,6 +8,8 @@ import VariableNode from "./AST/VariableNode";
 import UnarOperationNode from "./AST/UnarOperatorNode";
 import HyphotenuseNode from "./AST/HyphotenuseNode";
 import TextNode from "./AST/TextNode";
+import LinkedListNode from "./AST/LinkedListNode";
+import ConstantaNode from "./AST/ConstantaNode";
 
 export default class Parser {
     tokens: Token[]; //список токенов
@@ -116,8 +118,36 @@ export default class Parser {
         }
         throw new Error(`Ожидается оператор ГИПОТЕНУЗА на ${this.pos} позиции`)
     }
+    parseConst(): ExpressionNode {
+        this.pos -= 1;
+        const init = this.require(tokenTypesList.CONST);//ожидаем оператор константы
+        const variable = this.match(tokenTypesList.VARIABLE);//ожидаем переменную
+        if (variable != null){
+            //this.pos -= 1;
+            //let variableNode = this.parseVariableOrNumber();
+            this.require(tokenTypesList.ASSIGN);
+            this.require(tokenTypesList.NEW);
+            this.require(tokenTypesList.LINKEDLIST)
+            this.require(tokenTypesList.LDAT);
+            const data = this.match(tokenTypesList.VARIABLE);
+            if ( data != null){
+                //const variable2 = this.match(tokenTypesList.VARIABLE);
+                const listNode = new LinkedListNode(null,null, data);
+                this.require(tokenTypesList.RDAT);
+                this.require(tokenTypesList.LPAR);
+                this.require(tokenTypesList.RPAR);
+                return new ConstantaNode(init,variable,listNode);
+            }
+            //parse linked list
+        }
+        throw new Error(`Ожидается СПИСОК на ${this.pos} позиции`)
+    }
     parseExpression(): ExpressionNode { //парсит строки
-        if (this.match(tokenTypesList.HYPOTENUSE) != null) {
+        if (this.match(tokenTypesList.CONST) != null) {
+            const constNode = this.parseConst()
+            return constNode;
+        }
+        else if (this.match(tokenTypesList.HYPOTENUSE) != null) {
             const hypoNode = this.parseHypo()
             return hypoNode;
         }
@@ -131,6 +161,9 @@ export default class Parser {
             return printNode; //вернет узел
         }
         else if (this.match(tokenTypesList.VARIABLE) != null) {// ожидаем токен переменную или
+
+            //добавить для линкедлиста
+
             this.pos -= 1;// если была переменная вернемся обратно
             let variableNode = this.parseVariableOrNumber(); //парсим переменую #или числна
             const assignOperator = this.match(tokenTypesList.ASSIGN); //ожидаем оператор присвоения

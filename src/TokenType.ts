@@ -22,6 +22,12 @@ export const tokenTypesList = { //объект в котором описаны 
     'HYPOTENUSE': new TokenType('HYPOTENUSE', 'ГИПОТЕНУЗА'),
     'COMMA': new TokenType('COMMA', '\\,'),
     'QUOTE': new TokenType('QUOTE', '\\"'),
-    'TEXT': new TokenType('TEXT', '[а-я[0-9]*][а-я]*'),
+    'TEXT': new TokenType('TEXT', '[A-Z][a-zA-Z0-9$_’]*'),
     'CENUM': new TokenType('CENUM', '\\+'),
+    'LINKEDLIST': new TokenType('LINKEDLIST', 'СПИСОК'),
+    'LDAT': new TokenType('LDAT', '\\<'),
+    'RDAT': new TokenType('RDAT', '\\>'),
+    'NEW': new TokenType('NEW', 'НОВЫЙ'),
+    'CONST': new TokenType('CONST', 'КОНСТАНТА'),
+    //'CONST': new TokenType('CONST', ''),
 }

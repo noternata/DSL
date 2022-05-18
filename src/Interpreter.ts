@@ -7,10 +7,14 @@ import VariableNode from "./AST/VariableNode";
 import StatemenNode from "./AST/StatemenNode";
 import HyphotenuseNode from "./AST/HyphotenuseNode";
 import TextNode from "./AST/TextNode";
+import ConstantaNode from "./AST/ConstantaNode";
+import LinkedList from "./LL/LinkedList";
 
 
 export default class Interpreter{
     scope: any = {}; //объект в котором ключ- название,значение- то чему равна переменная
+    scope2: any = {};
+
 
 
     run(node: ExpressionNode): any { //часть интерпритатора
@@ -55,6 +59,17 @@ export default class Interpreter{
                     //console.log(node.operand) // для вывода дерева
                     return console.log(((this.run(node.leftNode) ** 2 + this.run(node.rightNode) ** 2)**(1/2)).toFixed(5))
             }
+        }
+
+
+        if (node instanceof ConstantaNode) {//ожидает узел константы
+            interface Post {
+                title: string;
+            }
+            let llname = node.leftNode.text
+            const linkedlist1 = new LinkedList<Post>();
+            this.scope2[llname] = linkedlist1 ;
+            return console.log(linkedlist1.traverse());
         }
         if (node instanceof StatemenNode) { //строка кода будет раскрываться
             node.codeStrings.forEach(codeString => {
