@@ -28,15 +28,10 @@ const code = //сам код
 ГИПОТЕНУЗА ( 3, 8 );
 `
 //ГИПОТЕНУЗА (3,4);
-//линкедлист.НАЙТИВСПИСКЕ(лоххх);
+//линкедлист.НАЙТИВСПИСКЕ(лом);
 const lexer = new Lexer(code);
 lexer.lexAnalysis()
 //console.log(lexer.tokenList) //печатаем список токенов
-
-// доб в конец
-// доб по ин
-//уд по ин
-// получить по ин
 
 const parser = new Parser(lexer.tokenList); // создаем объект парсера
 const rootNode = parser.parseCode() //корневой узел
