@@ -9,6 +9,8 @@ import HyphotenuseNode from "./AST/HyphotenuseNode";
 import TextNode from "./AST/TextNode";
 import ConstantaNode from "./AST/ConstantaNode";
 import LinkedList from "./LL/LinkedList";
+import LInkedListOperatorNode from "./AST/LInkedListOperatorNode";
+import LinkedListNode from "./AST/LinkedListNode";
 
 
 export default class Interpreter{
@@ -60,16 +62,49 @@ export default class Interpreter{
                     return console.log(((this.run(node.leftNode) ** 2 + this.run(node.rightNode) ** 2)**(1/2)).toFixed(5))
             }
         }
-
-
+        interface Post {
+            title: string | number;
+        }
         if (node instanceof ConstantaNode) {//ожидает узел константы
-            interface Post {
-                title: string;
-            }
             let llname = node.leftNode.text
             const linkedlist1 = new LinkedList<Post>();
             this.scope2[llname] = linkedlist1 ;
-            return console.log(linkedlist1.traverse());
+            return linkedlist1.traverse();
+        }
+        if (node instanceof LinkedListNode ) {
+            return this.run(node.data);
+        }
+        if (node instanceof LInkedListOperatorNode) {//ожидает узел операции над списком
+            const oper = node.operator.type.name
+            if (this.scope2[node.leftNode.text]) {
+                if (oper == 'INSERTATEND') {
+                    this.scope2[node.leftNode.text].insertAtEnd({title: this.run(node.rightNode)});
+                    return ;//this.scope2[node.leftNode.text].traverse();
+                }
+                if (oper == 'INSERTATBEGIN') {
+                    this.scope2[node.leftNode.text].insertInBegin({title: this.run(node.rightNode)});
+                    return ;//this.scope2[node.leftNode.text].traverse();
+                }
+                if (oper == 'DELITEINLIST') {
+                    this.scope2[node.leftNode.text].deleteNode({});
+
+                    return ;//this.scope2[node.leftNode.text].traverse();
+                }
+                if (oper == 'SEARCHINLIST') {
+                    // @ts-ignore
+                    console.log( this.scope2[node.leftNode.text].search(({ title }) => title === this.run(node.rightNode)))
+                    //return console.log(this.scope2[node.leftNode.text].traverse());
+                    return;
+                }
+                if (oper == 'PRINTLIST') {
+                    return console.log(this.scope2[node.leftNode.text].traverse());
+                }
+                if (oper == 'SIZELIST') {
+                    return console.log(this.scope2[node.leftNode.text].size());
+                }
+
+            }
+            throw new Error('Сначала нужно создать СПИСОК!')
         }
         if (node instanceof StatemenNode) { //строка кода будет раскрываться
             node.codeStrings.forEach(codeString => {

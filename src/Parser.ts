@@ -10,6 +10,7 @@ import HyphotenuseNode from "./AST/HyphotenuseNode";
 import TextNode from "./AST/TextNode";
 import LinkedListNode from "./AST/LinkedListNode";
 import ConstantaNode from "./AST/ConstantaNode";
+import LInkedListOperatorNode from "./AST/LInkedListOperatorNode";
 
 export default class Parser {
     tokens: Token[]; //список токенов
@@ -48,7 +49,7 @@ export default class Parser {
         const operatorLog = this.tokens[this.pos];//ожидаем токен
         this.pos += 1;
         if (this.match(tokenTypesList.QUOTE) != null) {
-            if (this.match(tokenTypesList.VARIABLE) != null) {
+            if ((this.match(tokenTypesList.VARIABLE) || this.match(tokenTypesList.TEXT)) != null) {
                 this.pos -= 1;
                 const textNode = this.parseText();
                 this.require(tokenTypesList.QUOTE);
@@ -97,6 +98,14 @@ export default class Parser {
         if (text != null) {
             return new TextNode(text);// вернем узел переменной создавая дерево
         }
+        const num = this.match(tokenTypesList.NUMBER);//ожидаем переменную
+        if (num != null) {
+            return new TextNode(num);// вернем узел переменной создавая дерево
+        }
+        const text2 = this.match(tokenTypesList.VARIABLE);//ожидаем переменную
+        if (text2 != null) {
+            return new TextNode(text2);// вернем узел переменной создавая дерево
+        }
         throw new Error(`Ожидается текст на ${this.pos} позиции`)
     }
 
@@ -123,24 +132,89 @@ export default class Parser {
         const init = this.require(tokenTypesList.CONST);//ожидаем оператор константы
         const variable = this.match(tokenTypesList.VARIABLE);//ожидаем переменную
         if (variable != null){
-            //this.pos -= 1;
-            //let variableNode = this.parseVariableOrNumber();
             this.require(tokenTypesList.ASSIGN);
             this.require(tokenTypesList.NEW);
             this.require(tokenTypesList.LINKEDLIST)
             this.require(tokenTypesList.LDAT);
             const data = this.match(tokenTypesList.VARIABLE);
             if ( data != null){
-                //const variable2 = this.match(tokenTypesList.VARIABLE);
-                const listNode = new LinkedListNode(null,null, data);
+                const listNode = new LinkedListNode(null,null, null );
                 this.require(tokenTypesList.RDAT);
                 this.require(tokenTypesList.LPAR);
                 this.require(tokenTypesList.RPAR);
                 return new ConstantaNode(init,variable,listNode);
             }
-            //parse linked list
         }
         throw new Error(`Ожидается СПИСОК на ${this.pos} позиции`)
+    }
+    parseLLOp(): ExpressionNode {
+        this.pos -= 2;
+        const varNode = this.require(tokenTypesList.VARIABLE);
+        this.require(tokenTypesList.POINT);
+        //const opNode = this.match(tokenTypesList.VARIABLE)
+        //const opNode =this.match(tokenTypesList.INSERTATEND)
+        if (this.match(tokenTypesList.INSERTATEND) != null) {
+            this.pos -= 1;
+            const opNode = this.require(tokenTypesList.INSERTATEND)
+            this.require(tokenTypesList.LPAR)
+            if ( (this.match(tokenTypesList.NUMBER) || this.match(tokenTypesList.VARIABLE) )!= null) {
+                this.pos -= 1;
+                const data =  this.parseText();
+                this.require(tokenTypesList.RPAR)
+                const listNode = new LinkedListNode(null,null, data);
+                return new LInkedListOperatorNode(opNode,varNode,listNode)
+            }
+        }
+        else if(this.match(tokenTypesList.INSERTATBEGIN) != null){
+            this.pos -= 1;
+            const opNode = this.require(tokenTypesList.INSERTATBEGIN)
+            this.require(tokenTypesList.LPAR)
+            if ((this.match(tokenTypesList.NUMBER) || this.match(tokenTypesList.VARIABLE) )!= null) {
+                this.pos -= 1;
+                const data =  this.parseText()
+                this.require(tokenTypesList.RPAR)
+                const listNode = new LinkedListNode(null,null, data);
+                return new LInkedListOperatorNode(opNode,varNode,listNode);
+            }
+        }
+        else if(this.match(tokenTypesList.DELITEINLIST) != null){
+            this.pos -= 1;
+            const opNode = this.require(tokenTypesList.DELITEINLIST)
+            this.require(tokenTypesList.LPAR)
+            this.require(tokenTypesList.RPAR)
+            const listNode = new LinkedListNode(null,null, null);
+            return new LInkedListOperatorNode(opNode,varNode,listNode);
+        }
+        else if(this.match(tokenTypesList.SEARCHINLIST) != null){
+            this.pos -= 1;
+            const opNode = this.require(tokenTypesList.SEARCHINLIST)
+            this.require(tokenTypesList.LPAR)
+            if ((this.match(tokenTypesList.NUMBER) || this.match(tokenTypesList.VARIABLE) )!= null) {
+                this.pos -= 1;
+                const data =  this.parseText()
+                this.require(tokenTypesList.RPAR)
+                const listNode = new LinkedListNode(null,null, data);
+                return new LInkedListOperatorNode(opNode,varNode,listNode);
+            }
+        }
+        else if(this.match(tokenTypesList.PRINTLIST) != null){
+            this.pos -= 1;
+            const opNode = this.require(tokenTypesList.PRINTLIST)
+            this.require(tokenTypesList.LPAR)
+            this.require(tokenTypesList.RPAR)
+            const listNode = new LinkedListNode(null,null, null);
+            return new LInkedListOperatorNode(opNode,varNode,listNode);
+        }
+        else if(this.match(tokenTypesList.SIZELIST) != null){
+            this.pos -= 1;
+            const opNode = this.require(tokenTypesList.SIZELIST)
+            this.require(tokenTypesList.LPAR)
+            this.require(tokenTypesList.RPAR)
+            const listNode = new LinkedListNode(null,null, null);
+            return new LInkedListOperatorNode(opNode,varNode,listNode);
+        }
+
+        throw new Error(`Ожидается ОПЕРАЦИЯ СО СПИСКОМ на ${this.pos} позиции`)
     }
     parseExpression(): ExpressionNode { //парсит строки
         if (this.match(tokenTypesList.CONST) != null) {
@@ -154,23 +228,28 @@ export default class Parser {
         else if (this.match(tokenTypesList.LOG) != null) {
             this.pos -= 1;
             //const operatorLog = this.require(tokenTypesList.LOG);//ожидаем токен
-            const printNode = this.parsePrint() //тогда ожидаем оператор консоль
+            const printNode = this.parsePrint(); //тогда ожидаем оператор консоль
             //if (this.match(tokenTypesList.CENUM) != null) {
                 //const printNode2 = this.parsePrint()
             //}
             return printNode; //вернет узел
         }
         else if (this.match(tokenTypesList.VARIABLE) != null) {// ожидаем токен переменную или
-
             //добавить для линкедлиста
 
-            this.pos -= 1;// если была переменная вернемся обратно
-            let variableNode = this.parseVariableOrNumber(); //парсим переменую #или числна
-            const assignOperator = this.match(tokenTypesList.ASSIGN); //ожидаем оператор присвоения
-            if (assignOperator != null) { //проверка, что вернулся токен а не ноль
-                const rightFormulaNode = this.parseFormula(); // распарсиваем формулу
-                const binaryNode = new BinOperationNode(assignOperator, variableNode, rightFormulaNode);//создаем узел бинарного оператора
-                return binaryNode;// вернем корневой узел
+            if (this.match(tokenTypesList.POINT) != null){
+                const LLOperationNode = this.parseLLOp();
+                return LLOperationNode;
+            }
+            else{
+                this.pos -= 1;// если была переменная вернемся обратно
+                const variableNode = this.parseVariableOrNumber(); //парсим переменую #или числна
+                const assignOperator = this.match(tokenTypesList.ASSIGN); //ожидаем оператор присвоения
+                if (assignOperator != null) { //проверка, что вернулся токен а не ноль
+                    const rightFormulaNode = this.parseFormula(); // распарсиваем формулу
+                    const binaryNode = new BinOperationNode(assignOperator, variableNode, rightFormulaNode);//создаем узел бинарного оператора
+                    return binaryNode;// вернем корневой узел
+                }
             }
         }
         throw new Error(`После переменной ожидается оператор присвоения на позиции ${this.pos}`);

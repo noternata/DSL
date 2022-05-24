@@ -9,7 +9,7 @@ interface ILinkedList<T> {
     deleteNode(node: Node<T>): void;
     traverse(): T[];
     size(): number;
-    search(comparator: (data: T) => boolean): Node<T> | null;
+    search(comparator: (data: T) => any): Node<T> | null;
 }
 export default class LinkedList<T> implements ILinkedList<T> {
     private head: Node<T> | null = null;
@@ -51,7 +51,7 @@ export default class LinkedList<T> implements ILinkedList<T> {
         }
     }
 
-    public search(comparator: (data: T) => boolean): Node<T> | null {
+    public search(comparator: (data: T) => any): Node<T> | null {
         const checkNext = (node: Node<T>): Node<T> | null => {
             if (comparator(node.data)) {
                 return node;
@@ -81,5 +81,5 @@ export default class LinkedList<T> implements ILinkedList<T> {
 }
 
 interface Post {
-    title: string;
+    title: string | number;
 }
